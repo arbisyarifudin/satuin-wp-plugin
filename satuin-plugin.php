@@ -90,3 +90,19 @@ function satuin_form_shortcode($atts) {
 
     return 'Render form with ID: ' . $atts['form_id'];
 }
+
+/**
+ * Add Satuin Form Action to Elementor Pro Form
+ *
+ * @since 1.0.0
+ * @param ElementorPro\Modules\Forms\Registrars\Form_Actions_Registrar $form_actions_registrar
+ * @return void
+ */
+function add_satuin_form_action( $form_actions_registrar ) {
+
+	include_once( __DIR__ .  '/form-actions/satuin.php' );
+
+	$form_actions_registrar->register( new Satuin_Elementor_Action_After_Submit() );
+
+}
+add_action( 'elementor_pro/forms/actions/register', 'add_satuin_form_action' );
