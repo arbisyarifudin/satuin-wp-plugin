@@ -19,6 +19,7 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+/* Add Satuin to Admin Menu */
 add_action('admin_menu', 'satuin_menu');
 
 function satuin_menu()
@@ -52,3 +53,40 @@ function satuin_menu_about_cb()
 }
 
 register_setting('satuin-settings', 'satuin_key');
+
+/* Create Satuin Form and add it to Elementor widget */
+add_action('elementor/widgets/widgets_registered', 'satuin_register_elementor_widget');
+
+function satuin_register_elementor_widget()
+{
+    if (defined('ELEMENTOR_PATH') && class_exists('Elementor\Widget_Base')) {
+        require_once('widgets/satuin-elementor-form-widget.php');
+
+        $elementor_widget = new Satuin_Elementor_Form_Widget();
+
+        // Let Elementor know about our widget
+        Elementor\Plugin::instance()->widgets_manager->register_widget_type($elementor_widget);
+
+        // Register the script
+        wp_register_script('satuin-elementor-form-script', plugins_url('/js/satuin-elementor-form-script.js', __FILE__), ['jquery'], false, true);
+
+        // Enqueue the script
+        wp_enqueue_script('satuin-elementor-form-script');
+    }
+}
+
+/* Create Satuin shortcode */
+add_shortcode('satuin_form', 'satuin_form_shortcode');
+
+function satuin_form_shortcode($atts) {
+    // Generate form based on settings
+    $atts = shortcode_atts(
+        array(
+            'form_id' => 'default_form_id',
+        ),
+        $atts,
+        'satuin_form'
+    );
+
+    return 'Render form with ID: ' . $atts['form_id'];
+}
