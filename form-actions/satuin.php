@@ -88,6 +88,19 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         );
 
         $widget->add_control(
+            'satuin_select_action',
+            [
+                'label' => esc_html__( 'Select Action', 'elementor-forms-satuin-action' ),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'submit_contact' => esc_html__( 'Submit Contact', 'elementor-forms-satuin-action' ),
+                    'submit_deal' => esc_html__( 'Submit Deal', 'elementor-forms-satuin-action' ),
+                ],
+                'default' => 'submit_contact',
+            ]
+        );
+
+        $widget->add_control(
             'satuin_map_field_header',
             [
                 'label' => esc_html__( 'Field Mapping', 'elementor-forms-satuin-action' ),
@@ -107,7 +120,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         $widget->add_control(
             'satuin_email_field',
             [
-                'label' => esc_html__( 'Email *', 'elementor-forms-satuin-action' ),
+                'label' => esc_html__( 'Email', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
             ]
@@ -116,7 +129,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         $widget->add_control(
             'satuin_number_field',
             [
-                'label' => esc_html__( 'Number *', 'elementor-forms-satuin-action' ),
+                'label' => esc_html__( 'Number', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
             ]
@@ -125,18 +138,24 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         $widget->add_control(
             'satuin_pipeline_field',
             [
-                'label' => esc_html__( 'Pipeline ID', 'elementor-forms-satuin-action' ),
+                'label' => esc_html__( 'Pipeline ID *', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
-            ]
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
+            ],
         );
 
         $widget->add_control(
             'satuin_stage_field',
             [
-                'label' => esc_html__( 'Stage ID', 'elementor-forms-satuin-action' ),
+                'label' => esc_html__( 'Stage ID *', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
             ]
         );
 
@@ -146,6 +165,9 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
                 'label' => esc_html__( 'Deal Name', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
             ]
         );
 
@@ -155,6 +177,9 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
                 'label' => esc_html__( 'Deal Amount', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
             ]
         );
 
@@ -164,6 +189,9 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
                 'label' => esc_html__( 'Deal Notes', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
             ]
         );
 
@@ -173,6 +201,9 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
                 'label' => esc_html__( 'Deal Products', 'elementor-forms-satuin-action' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $widget->get_form_fields(),
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
             ]
         );
 
@@ -294,10 +325,12 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         }
 
         // Check if data is for submit contact only or submit deal.
-        $isDealSubmission = false;
-        if ( ! empty( $satuin_data['pipelineID'] ) && ! empty( $satuin_data['stageID'] ) ) {
-            $isDealSubmission = true;
-        }
+        // $isDealSubmission = false;
+        // if ( ! empty( $satuin_data['pipelineID'] ) && ! empty( $satuin_data['stageID'] ) ) {
+        //     $isDealSubmission = true;
+        // }
+
+        $isDealSubmission = $settings['satuin_select_action'] === 'submit_deal';
 
         $oubountActionURL = 'https://tunnel.satuin.com/outbound/contact/create?key=' . $ouboundApiKey;
         if ($isDealSubmission) {
