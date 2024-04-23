@@ -17,11 +17,11 @@ class Satuin_Elementor_Form_Widget extends Widget_Base {
     }
 
     public function get_icon() {
-        return 'fa fa-form';
+        return 'eicon-form-horizontal';
     }
 
     public function get_categories() {
-        return ['general'];
+        return [ 'general' ];
     }
 
     protected function _register_controls() {
