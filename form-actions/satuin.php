@@ -234,7 +234,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         );
 
         $widget->add_control(
-            'satuin_products_field',
+            'satuin_product_field',
             [
                 'label' => esc_html__('Deal Products', 'elementor-forms-satuin-action'),
                 'type' => \Elementor\Controls_Manager::SELECT,
@@ -260,19 +260,24 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
      */
     public function run($record, $ajax_handler)
     {
+        // set cookie to test if it's running
+        setcookie('satuin_action', 'running', 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         $settings = $record->get('form_settings');
 
         // var_dump($settings);
+        setcookie('satuin_settings', wp_json_encode($settings), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         // Get satuin_key from settings
         $ouboundApiKey = $settings['satuin_key'];
         if ($ouboundApiKey === 'default') {
-            // get satuin_key from settings
+            // get satuin_key from admin > satuin setting
             $ouboundApiKey = esc_attr(get_option('satuin_key'));
         } else {
             $ouboundApiKey = $settings['satuin_key_custom'];
         }
+
+        setcookie('satuin_key', $ouboundApiKey, 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         if (empty($ouboundApiKey)) {
             return;
@@ -344,11 +349,11 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         }
 
         // Set the deal products.
-        if (!empty($fields[$settings['satuin_products_field']])) {
-            if (is_array($fields[$settings['satuin_products_field']])) {
-                $satuin_data['dealProducts'][0]['name'] = $fields[$settings['satuin_products_field']];
+        if (!empty($fields[$settings['satuin_product_field']])) {
+            if (is_array($fields[$settings['satuin_product_field']])) {
+                $satuin_data['dealProducts'][0]['name'] = $fields[$settings['satuin_product_field']];
             } else {
-                foreach ($fields[$settings['satuin_products_field']] as $key => $value) {
+                foreach ($fields[$settings['satuin_product_field']] as $key => $value) {
                     $satuin_data['dealProducts'][$key]['name'] = $value;
                 }
             }
@@ -364,13 +369,16 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $satuin_data['stageID'] = $fields[$settings['satuin_stage_field']];
         }
 
+        setcookie('satuin_data', wp_json_encode($satuin_data), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+
         // Check if data is for submit contact only or submit deal.
         // $isDealSubmission = false;
         // if ( ! empty( $satuin_data['pipelineID'] ) && ! empty( $satuin_data['stageID'] ) ) {
         //     $isDealSubmission = true;
         // }
 
-        $baseUrl = (ENVIROMENT === 'development') ? 'tunnel-dev.satuin.id' : 'tunnel.satuin.id';
+        // setcookie('APP_MODE', APP_MODE, 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        $baseUrl = (APP_MODE === 'development') ? 'tunnel-dev.satuin.id' : 'tunnel.satuin.id';
 
         switch ($settings['satuin_select_action']) {
             case 'submit_deal':
@@ -386,13 +394,129 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
 
         $ouboundActionURL = 'https://' . $baseUrl . '/outbound/' . $action . '?key=' . $ouboundApiKey;
 
+        // set cookie to test if it's running
+        setcookie('satuin_action_url', $ouboundActionURL, 0, COOKIEPATH, COOKIE_DOMAIN, true);
+
         // Send the request.
-        $result = wp_remote_post(
-            $ouboundActionURL,
-            [
-                'body' => $satuin_data,
-            ]
-        );
+        // try {
+        //     return $this->sendRequest($ouboundActionURL, $satuin_data);
+        // } catch (Exception $e) {
+        //     // Log the error.
+        //     // error_log('Satuin outbound API error: ' . $e->getMessage());
+        //     setcookie('satuin_action_api_error', $e->getMessage(), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        // }
+
+        return true;
+
+        $args = [
+            // 'headers' => [
+            //     'Content-Type' => 'application/json',
+            // ],
+            'body' => $satuin_data,
+        ];
+
+        /**
+         * Forms webhook request arguments.
+         *
+         * Filters the request arguments delivered by the form webhook when executing
+         * an ajax request.
+         *
+         * @since 1.0.0
+         *
+         * @param array       $args   Webhook request arguments.
+         * @param Form_Record $record An instance of the form record.
+         */
+        $args = apply_filters('elementor_pro/forms/satuin/request_args', $args, $record);
+
+        $errors = [];
+        try {
+            $response = wp_remote_post($ouboundActionURL, $args);
+
+            // get response body
+            $responseBody = wp_remote_retrieve_body($response);
+
+            // $responseBodyArray = json_decode($responseBody, true);
+            // if (isset($responseBodyArray['status']) && $responseBodyArray['status'] == 400) {
+            //     // throw new \Exception($responseBodyArray['message']);
+            //     if (!empty($responseBodyArray['messages'])) {
+            //         foreach ($responseBodyArray['messages'] as $message) {
+            //             $errors[] = $message;
+            //         }
+            //     } else {
+            //         $errors[] = $responseBodyArray['message'];
+            //     }
+            // }
+
+            setcookie('satuin_action_api_response', wp_json_encode($responseBody), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        } catch (Exception $e) {
+            // Log the error.
+            // error_log('Satuin outbound API error: ' . $e->getMessage());
+            setcookie('satuin_action_api_error', $e->getMessage(), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        }
+
+
+        /**
+         * Elementor form webhook response.
+         *
+         * Fires when the webhook response is retrieved by Elementor forms. This hook
+         * allows developers to add functionality after recieving webhook responses.
+         *
+         * @since 1.0.0
+         *
+         * @param \WP_Error|array $response The response or WP_Error on failure.
+         * @param Form_Record     $record   An instance of the form record.
+         */
+        do_action('elementor_pro/forms/satuin/response', $response, $record);
+
+        if (200 !== (int) wp_remote_retrieve_response_code($response)) {
+            // throw new \Exception('Outbound API error.');
+
+            // error 1, error 2
+            $errorMessage = '';
+            foreach ($errors as $error) {
+                $errorMessage .= $error . ' ';
+            }
+            
+            throw new Exception("Outbound API error: " . $errorMessage);
+        }
+    }
+
+    /**
+     * Send request.
+     *
+     * Send a request to the Satuin outbound API.
+     *
+     * @since 1.0.0
+     * @access private
+     * @param string $url
+     * @param array  $data
+     */
+    private function sendRequest($url, $data)
+    {
+        $args = [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => wp_json_encode($data),
+            'timeout' => 90,
+        ];
+
+        $response = wp_remote_post($url, $args);
+
+        // get response body
+        $response_body = wp_remote_retrieve_body($response);
+
+        setcookie('satuin_action_api_response', wp_json_encode($response_body), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+
+        if (is_wp_error($response)) {
+            throw new Exception($response->get_error_message());
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            throw new Exception('Invalid response code: ' . $response_code);
+            // throw new Exception('Invalid response code: ' . wp_json_encode($response));
+        }
     }
 
     /**
@@ -409,6 +533,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
 
         unset(
             $element['satuin_key'],
+            $element['satuin_key_custom'],
             $element['satuin_name_field'],
             $element['satuin_email_field'],
             $element['satuin_number_field'],
@@ -417,7 +542,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $element['satuin_deal_name_field'],
             $element['satuin_amount_field'],
             $element['satuin_notes_field'],
-            $element['satuin_products_field'],
+            $element['satuin_product_field'],
         );
 
         return $element;
