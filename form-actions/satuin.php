@@ -275,7 +275,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $ouboundApiKey = $settings['satuin_key_custom'];
         }
 
-        setcookie('satuin_key', $ouboundApiKey, 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        // setcookie('satuin_key', $ouboundApiKey, 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         if (empty($ouboundApiKey)) {
             return;
@@ -308,6 +308,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             'dealProducts' => [],
             'pipelineID' => '',
             'stageID' => '',
+            'emailTemplateID' => '',
         ];
 
         // Set the contact name.
@@ -369,6 +370,11 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $satuin_data['stageID'] = $fields[$settings['satuin_stage_field']];
         }
 
+        // Set the email template ID.
+        if (!empty($settings['satuin_email_template_id'])) {
+            $satuin_data['emailTemplateID'] = $settings['satuin_email_template_id'];
+        }
+
         // setcookie('satuin_data', wp_json_encode($satuin_data), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         // setcookie('APP_MODE', APP_MODE, 0, COOKIEPATH, COOKIE_DOMAIN, true);
@@ -389,7 +395,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         $ouboundActionURL = 'https://' . $baseUrl . '/outbound/' . $action . '?key=' . $ouboundApiKey;
 
         // set cookie to test if it's running
-        setcookie('satuin_action_url', $ouboundActionURL, 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        // setcookie('satuin_action_url', $ouboundActionURL, 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         // Send the request.
         // try {
