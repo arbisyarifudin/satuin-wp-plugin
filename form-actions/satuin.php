@@ -546,6 +546,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $element['satuin_amount_field'],
             $element['satuin_notes_field'],
             $element['satuin_products_field'],
+            $element['satuin_email_template_id']
         );
 
         return $element;
