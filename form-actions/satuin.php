@@ -261,7 +261,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
     public function run($record, $ajax_handler)
     {
         // set cookie to test if it's running
-        setcookie('satuin_action', 'running', 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        // setcookie('satuin_action', 'running', 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         $settings = $record->get('form_settings');
         // print_r($settings);
@@ -374,6 +374,21 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         if (!empty($settings['satuin_email_template_id'])) {
             $satuin_data['emailTemplateID'] = $settings['satuin_email_template_id'];
         }
+
+        // Set the referrer origin and URL.
+        $additionals = [
+            'referrerOrigin' => isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '',
+            'referrerURL' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
+        ];
+
+        foreach ($fields as $key => $value) {
+            if (!in_array($key, array_keys($satuin_data))) {
+                $additionals[$key] = $value;
+            }
+        }
+
+        // Add additionals field to submission data
+        $satuin_data['additionals'] = $additionals;
 
         // setcookie('satuin_data', wp_json_encode($satuin_data), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
@@ -509,7 +524,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         // get response body
         $response_body = wp_remote_retrieve_body($response);
 
-        setcookie('satuin_action_api_response', wp_json_encode($response_body), 0, COOKIEPATH, COOKIE_DOMAIN, true);
+        // setcookie('satuin_action_api_response', wp_json_encode($response_body), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         if (is_wp_error($response)) {
             throw new Exception($response->get_error_message());
