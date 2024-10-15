@@ -291,6 +291,7 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         }
 
         // print_r($fields);
+        // setcookie('satuin_fields', wp_json_encode($fields), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
         // Make sure the user entered an email or number (required for Satuin)
         if (empty($fields[$settings['satuin_email_field']]) && empty($fields[$settings['satuin_number_field']])) {
@@ -386,6 +387,9 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
                 $additionals[$key] = $value;
             }
         }
+        
+        unset($additionals['dealProduct']);
+
 
         // Add additionals field to submission data
         $satuin_data['additionals'] = $additionals;
