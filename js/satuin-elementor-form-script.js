@@ -1,3 +1,3 @@
-jQuery(document).ready(function($) {
-    console.log('Satuin Elementor Form script loaded');
-});
+// jQuery(document).ready(function($) {
+//     console.log('Satuin Elementor Form script loaded');
+// });
