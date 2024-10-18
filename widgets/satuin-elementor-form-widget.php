@@ -1,6 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly.
+    exit; // Exit if accessed directly.
 }
 
 use Elementor\Widget_Base;
@@ -50,9 +50,28 @@ class Satuin_Elementor_Form_Widget extends Widget_Base {
     protected function render() {
         $settings = $this->get_settings_for_display();
 
-        // Render the form based on the form ID
-        echo 'Render form with ID: ' . $settings['form_id'];
+        // Check if form_id is set
+        if (empty($settings['form_id'])) {
+            echo 'Error: No form ID provided.';
+            return;
+        }
+
+        // Retrieve form ID from settings
+        $form_id = esc_html($settings['form_id']);
+
+        // Try to retrieve the form (adjust this logic based on how you store forms)
+        $form = get_post($form_id); // Assuming forms are stored as posts
+
+        if (!$form) {
+            echo 'Error: Form not found.';
+            return;
+        }
+
+        // Render the form (assuming the form content is stored in post_content)
+        echo 'Form ID: ' . $form_id . '<br>';
+        echo do_shortcode($form->post_content); // Assuming shortcodes are used for form rendering
     }
 }
 
-// \Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Satuin_Elementor_Form_Widget());
+// Register the widget
+\Elementor\Plugin::instance()->widgets_manager->register_widget_type(new Satuin_Elementor_Form_Widget());

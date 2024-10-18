@@ -37,7 +37,7 @@ function satuin_menu_setting_cb()
     }
     wp_enqueue_style('satuin-plugin-style', plugins_url('/css/styles.css', __FILE__));
     wp_enqueue_script('vue', plugins_url('/js/vue.min.js',  __FILE__));
-    wp_enqueue_script('js-app', plugins_url('/js/app.js', __FILE__), 'js-app');
+    wp_enqueue_script('js-app', plugins_url('/js/app.js', __FILE__), ['vue'], false, true);
     require_once('views/setting-view.php');
 }
 
@@ -48,11 +48,13 @@ function satuin_menu_about_cb()
     }
     wp_enqueue_style('satuin-plugin-style', plugins_url('/css/styles.css', __FILE__));
     wp_enqueue_script('vue', plugins_url('/js/vue.min.js',  __FILE__));
-    wp_enqueue_script('js-app', plugins_url('/js/app.js', __FILE__), 'js-app');
+    wp_enqueue_script('js-app', plugins_url('/js/app.js', __FILE__), ['vue'], false, true);
     require_once('views/about-view.php');
 }
 
-register_setting('satuin-settings', 'satuin_key');
+add_action('admin_init', function() {
+    register_setting('satuin-settings', 'satuin_key');
+});
 
 /* Create Satuin Form and add it to Elementor widget */
 // add_action('elementor/widgets/widgets_registered', 'satuin_register_elementor_widget');
