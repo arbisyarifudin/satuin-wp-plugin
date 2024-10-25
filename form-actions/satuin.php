@@ -324,7 +324,8 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
 
         setcookie('satuin_action_data', json_encode($satuin_data), 0, COOKIEPATH, COOKIE_DOMAIN, true);
 
-        $baseUrl = (APP_MODE === 'development') ? 'tunnel-dev.satuin.id' : 'tunnel.satuin.id';
+        // $baseUrl = (APP_MODE === 'development') ? 'tunnel-dev.satuin.id' : 'tunnel.satuin.id';
+        $baseUrl = 'tunnel.satuin.id';
 
         switch ($settings['satuin_select_action']) {
             case 'submit_deal':
