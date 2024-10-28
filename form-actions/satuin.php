@@ -96,6 +96,43 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         // );
 
         $widget->add_control(
+            'satuin_auto_followup_option',
+            [
+                'label' => esc_html__('Use Auto Follow up', 'elementor-forms-satuin-action'),
+                'description' => esc_html__('
+                    Enable this option to automatically send follow up to the contact after 1 ~ 5 minutes. 
+                ', 'elementor-forms-satuin-action'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => [
+                    'disabled' => esc_html__('Disabled', 'elementor-forms-satuin-action'),
+                    'whatsapp' => esc_html__('WhatsApp', 'elementor-forms-satuin-action'),
+                    // 'email' => esc_html__('Email', 'elementor-forms-satuin-action'),
+                ],
+                'default' => 'disabled',
+                'condition' => [
+                    'satuin_select_action' => 'submit_deal',
+                ],
+            ]
+        );
+
+        $widget->add_control(
+            'satuin_auto_followup_message',
+            [
+                'label' => esc_html__('Auto Follow up Message', 'elementor-forms-satuin-action'),
+                'type' => \Elementor\Controls_Manager::TEXTAREA,
+                'input_type' => 'text',
+                'placeholder' => esc_html__('Enter message', 'elementor-forms-satuin-action'),
+                'condition' => [
+                    'satuin_auto_followup_option' => ['whatsapp', 'email'],
+                    'satuin_select_action' => 'submit_deal',
+                ],
+                'ai' => [
+                    'active' => true,
+                ],
+            ]
+        );
+
+        $widget->add_control(
             'satuin_map_field_header',
             [
                 'label' => esc_html__('Field Mapping', 'elementor-forms-satuin-action'),
@@ -132,6 +169,15 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             'satuin_number_field',
             [
                 'label' => esc_html__('Number', 'elementor-forms-satuin-action'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'options' => $formFieldsAsOptions,
+            ]
+        );
+
+        $widget->add_control(
+            'satuin_salutation_field',
+            [
+                'label' => esc_html__('Salutation', 'elementor-forms-satuin-action'),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => $formFieldsAsOptions,
             ]
@@ -215,14 +261,16 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
     public function run($record, $ajax_handler)
     {
         setcookie('satuin_action', 'running', 0, COOKIEPATH, COOKIE_DOMAIN, true);
-
+        
         $settings = $record->get('form_settings');
+        
+        add_option('satuin_key', 'default_value');
 
-        $ouboundApiKey = $settings['satuin_key'];
+        $ouboundApiKey = @$settings['satuin_key'];
         if ($ouboundApiKey === 'default') {
             $ouboundApiKey = esc_attr(get_option('satuin_key'));
         } else {
-            $ouboundApiKey = $settings['satuin_key_custom'];
+            $ouboundApiKey = @$settings['satuin_key_custom'];
         }
 
         setcookie('satuin_action_apikey', $ouboundApiKey, 0, COOKIEPATH, COOKIE_DOMAIN, true);
@@ -247,13 +295,16 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             'contactName' => '',
             'contactEmail' => '',
             'contactNumber' => '',
+            'contactSalutation' => '',
             'dealName' => '',
             'dealNotes' => '',
             'dealAmount' => '',
             'dealProducts' => [],
             'pipelineID' => '',
             'stageID' => '',
-            'emailTemplateID' => '',
+            // 'emailTemplateID' => '',
+            'autoFollowupOption' => 'disabled',
+            'autoFollowupMessage' => '',
         ];
 
         if (!empty($fields[$settings['satuin_name_field']])) {
@@ -272,6 +323,10 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
             $satuin_data['contactNumber'] = $fields[$settings['satuin_number_field']];
         } else {
             $satuin_data['contactNumber'] = '+62000000000';
+        }
+
+        if (!empty($fields[$settings['satuin_salutation_field']])) {
+            $satuin_data['contactSalutation'] = $fields[$settings['satuin_salutation_field']];
         }
 
         if (!empty($fields[$settings['satuin_deal_name_field']])) {
@@ -307,6 +362,13 @@ class Satuin_Elementor_Action_After_Submit extends \ElementorPro\Modules\Forms\C
         // if (!empty(@$settings['satuin_email_template_id'])) {
         //     $satuin_data['emailTempla teID'] = $settings['satuin_email_template_id'];
         // }
+
+        if (!empty(@$settings['satuin_auto_followup_option'])) {
+            $satuin_data['autoFollowupOption'] = $settings['satuin_auto_followup_option'];
+        }
+        if (!empty(@$settings['satuin_auto_followup_message'])) {
+            $satuin_data['autoFollowupMessage'] = $settings['satuin_auto_followup_message'];
+        }
 
         $additionals = [
             'referrerOrigin' => isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '',
