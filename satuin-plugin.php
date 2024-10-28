@@ -4,7 +4,7 @@
  * Plugin Name: Satuin Plugin
  * Plugin URI:        http://satuin.id/
  * Description:       Satuin Custom Plugin
- * Version:           0.0.2
+ * Version:           0.0.3
  * Requires at least: 5.7
  * Requires PHP:      7.3
  * Author:            Onero
